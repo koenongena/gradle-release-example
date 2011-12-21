@@ -1,0 +1,63 @@
+import org.gradle.build.Version
+import org.gradle.build.Releases
+import org.gradle.build.Git
+
+releases = new Releases(new File('releases.xml'), project) {
+    String calculateNextVersion(String version) {
+        //TODO change this method name and logic
+        return "2.0"
+    }
+}
+
+version = new Version(project)
+
+allprojects  {
+	apply plugin: 'java'
+	apply plugin: 'idea'
+    apply plugin: 'eclipse'
+
+    sourceCompatibility = 1.6
+	targetCompatibility = 1.6
+	group = 'be.ebit'
+    version = this.version
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
+    ideaModule {
+        javaVersion = 1.6
+    }
+}
+
+//marker task
+task releaseVersion
+
+task testedDists(dependsOn: [assemble, check])
+
+def tagNow() {
+    def git = new Git(project)
+    git.checkNoModifications()
+    git.tag("REL_$version", "Release $version")
+    git.branch("RB_$version")
+}
+
+task testedTag(dependsOn: testedDists) << {
+    tagNow()
+}
+
+task releaseArtifacts {
+    description = 'Builds the release artifacts'
+    group = 'release'
+    dependsOn releaseVersion, assemble
+}
+
+task release {
+    description = 'Builds, tests and uploads the release artifacts'
+    group = 'release'
+    dependsOn releaseVersion, testedTag, releaseArtifacts, testedDists
+    doLast {
+        releases.incrementNextVersion()
+    }
+}

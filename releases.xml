@@ -1,0 +1,4 @@
+<releases>
+    <next version="'1.0"/>
+    <current version="${version}" build-time="${buildTime}"/>
+</releases>
