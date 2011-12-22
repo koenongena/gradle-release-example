@@ -1,4 +1,4 @@
-package org.gradle.build
+package org.gradle.release
 /*
  * Copyright 2010 the original author or authors.
  *

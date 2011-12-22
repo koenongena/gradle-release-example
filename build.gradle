@@ -1,6 +1,6 @@
-import org.gradle.build.Version
-import org.gradle.build.Releases
-import org.gradle.build.Git
+import org.gradle.release.Version
+import org.gradle.release.Releases
+import org.gradle.release.Git
 
 releases = new Releases(new File('releases.xml'), project) {
     String calculateNextVersion(String version) {
@@ -15,6 +15,7 @@ allprojects  {
 	apply plugin: 'java'
 	apply plugin: 'idea'
     apply plugin: 'eclipse'
+    apply plugin: 'maven'
 
     sourceCompatibility = 1.6
 	targetCompatibility = 1.6
