@@ -65,4 +65,11 @@ class Git {
             args = osExecutables().args + ['git', 'branch', branch]
         }
     }
+
+    def commit(){
+        project.exec {
+            executable = osExecutables().executable
+                        args = osExecutables().args + ['git', 'commit', '-m', '"Committed releases"']
+        }
+    }
 }
