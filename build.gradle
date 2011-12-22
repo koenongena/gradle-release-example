@@ -48,10 +48,25 @@ task testedTag(dependsOn: testedDists) << {
     tagNow()
 }
 
+uploadArchives {
+    repositories.mavenDeployer {
+        snapshotRepository(url: "http://ehq-intra-01.hq.ebit.be:8080/nexus/content/repositories/snapshots") {
+            authentication(userName: NEXUS_USER, password: NEXUS_PASSWORD)
+        }
+        repository(url: "http://ehq-intra-01.hq.ebit.be:8080/nexus/content/repositories/releases") {
+            authentication(userName: NEXUS_USER, password: NEXUS_PASSWORD)
+        }
+    }
+}
+
+task distributeReleases(dependsOn: uploadArchives){
+
+}
+
 task releaseArtifacts {
     description = 'Builds the release artifacts'
     group = 'release'
-    dependsOn releaseVersion, assemble
+    dependsOn releaseVersion, assemble, distributeReleases
 }
 
 task release {
