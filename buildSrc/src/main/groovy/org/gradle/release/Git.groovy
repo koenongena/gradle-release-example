@@ -25,12 +25,24 @@ class Git {
         this.project = project
     }
 
+    def osExecutables() {
+        def os = System.getProperty("os.name").toLowerCase()
+        if (os.contains("windows")) {
+            return [executable: 'cmd', args:['/c']]
+        }
+
+        return [executable: 'git', args:[]]
+
+    }
+
     def checkNoModifications() {
+
+
         println 'checking for modifications'
         def stdout = new ByteArrayOutputStream()
         project.exec {
-            executable = 'git'
-            args = ['status', '--porcelain']
+            executable = osExecutables().executable
+            args = osExecutables().args + ['git', 'status', '--porcelain']
             standardOutput = stdout
         }
         if (stdout.toByteArray().length > 0) {
@@ -41,16 +53,16 @@ class Git {
     def tag(String tag, String message) {
         println "tagging with $tag"
         project.exec {
-            executable = 'git'
-            args = ['tag', '-a', tag, '-m', message]
+            executable = osExecutables().executable
+            args = osExecutables().args + ['git', 'tag', '-a', tag, '-m', message]
         }
     }
 
     def branch(String branch) {
         println "creating branch $branch"
         project.exec {
-            executable = 'git'
-            args = ['branch', branch]
+            executable = osExecutables().executable
+            args = osExecutables().args + ['git', 'branch', branch]
         }
     }
 }
