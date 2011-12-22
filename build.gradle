@@ -5,7 +5,7 @@ import org.gradle.release.Git
 releases = new Releases(new File('releases.xml'), project) {
     String calculateNextVersion(String version) {
         //TODO change this method name and logic
-        return "3.0"
+        return "4.0"
     }
 }
 
@@ -50,10 +50,10 @@ task testedTag(dependsOn: testedDists) << {
 
 uploadArchives {
     repositories.mavenDeployer {
-        snapshotRepository(url: "http://ehq-intra-01.hq.ebit.be:8080/nexus/content/repositories/snapshots") {
+        snapshotRepository(url: SNAPSHOT_URL) {
             authentication(userName: NEXUS_USER, password: NEXUS_PASSWORD)
         }
-        repository(url: "http://ehq-intra-01.hq.ebit.be:8080/nexus/content/repositories/releases") {
+        repository(url: REPOSITORY_URL) {
             authentication(userName: NEXUS_USER, password: NEXUS_PASSWORD)
         }
     }
@@ -75,7 +75,6 @@ task release {
     dependsOn releaseVersion, testedTag, releaseArtifacts, testedDists
     doLast {
         releases.incrementNextVersion()
-        def git = new Git(project)
-        git.commit()
+        new Git(project).commitReleases()
     }
 }

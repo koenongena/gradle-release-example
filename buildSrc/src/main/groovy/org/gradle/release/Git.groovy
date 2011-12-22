@@ -28,10 +28,10 @@ class Git {
     def osExecutables() {
         def os = System.getProperty("os.name").toLowerCase()
         if (os.contains("windows")) {
-            return [executable: 'cmd', args:['/c']]
+            return [executable: 'cmd', args: ['/c']]
         }
 
-        return [executable: 'git', args:[]]
+        return [executable: 'git', args: []]
 
     }
 
@@ -66,10 +66,10 @@ class Git {
         }
     }
 
-    def commit(){
+    def commitReleases() {
         project.exec {
             executable = osExecutables().executable
-                        args = osExecutables().args + ['git', 'commit', '-m', '"Committed releases"']
+            args = osExecutables().args + ['git', 'commit', '-m', '"Committed releases"', "${project.relativePath(project.releases.releasesFile)}"]
         }
     }
 }
