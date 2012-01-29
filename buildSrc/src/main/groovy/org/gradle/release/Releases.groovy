@@ -15,10 +15,10 @@ package org.gradle.release
  * limitations under the License.
  */
 
-
-import java.util.regex.Pattern
-import java.text.SimpleDateFormat
 import org.gradle.api.Project
+
+import java.text.SimpleDateFormat
+import java.util.regex.Pattern
 
 class Releases {
     final File releasesFile
@@ -47,30 +47,12 @@ class Releases {
     }
 
     String calculateNextVersion(String version) {
-        def matcher = Pattern.compile("(\\d+(\\.\\d+)*?\\.)(\\d+)((-\\w+-)(\\d)[a-z]?)?").matcher(version)
+        def matcher = Pattern.compile(/(\d+)\.(\d+)\.(\d+)\.(\d+)/).matcher(version)
         if (!matcher.matches()) {
             throw new RuntimeException("Cannot determine the next version after '$version'")
         }
-        if (!matcher.group(4)) {
-            def minor = matcher.group(3) as Integer
-            return "${matcher.group(1)}${minor+1}-milestone-1"
-        }
-        def minor = matcher.group(6) as Integer
-        return "${matcher.group(1)}${matcher.group(3)}${matcher.group(5)}${minor+1}"
-    }
-
-    String askNewVersion() {
-        def console = System.console()
-        if (console) {
-            String nv
-            while (nv.isBlank()){
-                nv = console.readLine('> What will be the next release version?: ')
-            }
-        } else {
-
-            logger.error "Cannot get console."
-
-        }
+        def minor = matcher.group(4) as Integer
+        return "${matcher.group(1)}.${matcher.group(2)}.${matcher.group(3)}.${minor + 1}"
     }
 
     void incrementNextVersion() {

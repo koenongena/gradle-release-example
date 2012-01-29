@@ -15,9 +15,8 @@ package org.gradle.release
  * limitations under the License.
  */
 
-
-import java.text.SimpleDateFormat
 import org.gradle.api.GradleException
+import java.text.SimpleDateFormat
 
 class Version {
     String versionNumber
@@ -55,21 +54,5 @@ class Version {
             throw new GradleException("Can't determine whether this is a release build before the task graph is populated")
         }
         return release
-    }
-
-    String getDistributionUrl() {
-        if (release) {
-            'https://gradle.artifactoryonline.com/gradle/distributions'
-        } else {
-            'https://gradle.artifactoryonline.com/gradle/distributions-snapshots'
-        }
-    }
-
-    String getLibsUrl() {
-        if (release) {
-            'https://gradle.artifactoryonline.com/gradle/libs-releases-local'
-        } else {
-            'https://gradle.artifactoryonline.com/gradle/libs-snapshots-local'
-        }
     }
 }

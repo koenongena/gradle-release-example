@@ -1,0 +1,105 @@
+import org.gradle.release.Releases
+import org.gradle.release.Svn
+import org.gradle.release.Version
+
+releases = new Releases(new File('releases.xml'), project)
+
+version = new Version(project)
+
+task checkForSnapshotDependencies() {
+    description = 'Checks if the project has snapshot dependencies'
+    group = 'release'
+    doLast {
+//        def snapshotDependencies = []
+//        project.subprojects.each { proj ->
+//            ['compile', 'runtime'].each { scope ->
+//                proj.configurations."$scope".allDependencies.each { depSet ->
+//                    snapshotDependencies += depSet.findAll { dep -> dep.version.endsWith("-SNAPSHOT") }
+//                }
+//            }
+//        }
+//
+//        if (!snapshotDependencies.empty) {
+//            String message = "Snapshot dependencies found: \n"
+//            message += (snapshotDependencies.collect {"-> $it.group:$it.name:$it.version"} as Set).join('\n')
+//            throw new RuntimeException(message)
+//        }
+    }
+}
+
+task checkVcsState() {
+    description = 'Checks if the project has local vcs modifications'
+    group = 'release'
+    doLast {
+        def svn = new Svn(project)
+        def isDirty = svn.hasUncommittedFiles()
+        if (isDirty) {
+            throw new RuntimeException('Uncommited changes found in the source tree')
+        }
+
+        def isUpToDate = svn.isLocalCopyUpToDate()
+        if (!isUpToDate) {
+            throw new RuntimeException('Working copy is not up-to-date with remote repo')
+        }
+
+        def tagName = "${project.name}_$version"
+        def doesTagExist = svn.doesTagExist(tagName)
+
+        if (doesTagExist) {
+            throw new RuntimeException("Tag with name '$tagName' already exists")
+        }
+
+        def releaseBranchName = "${project.name}_RB_$version"
+        def doesReleaseBranchExist = svn.doesBranchExist(releaseBranchName)
+
+        if(doesReleaseBranchExist) {
+            throw new RuntimeException("Release branch with name '$releaseBranchName' already exists")
+        }
+    }
+}
+
+task readyToRelease() {
+    description = 'Checks if the project is ready-to-release'
+    group = 'release'
+    dependsOn checkForSnapshotDependencies, checkVcsState
+}
+
+task releaseVersion() {
+    dependsOn readyToRelease
+}
+
+task buildAndTestProject() {
+    dependsOn releaseVersion
+    dependsOn subprojects*.name.collect {":$it:clean"}
+    dependsOn subprojects*.name.collect {":$it:test"}
+}
+
+task tagRelease() {
+    description = 'Tag the release'
+    group = 'release'
+    dependsOn buildAndTestProject
+    doLast {
+        def svn = new Svn(project)
+        svn.tag("${project.name}_$version", "[maven-scm] Tagging release $version")
+        svn.branch("${project.name}_RB_$version", "[maven-scm] Creating release branch for $version")
+    }
+}
+
+task distributeRelease() {
+    description = 'Distributes the release artifacts'
+    group = 'release'
+    dependsOn subprojects*.name.collect {":$it:uploadArchives"}
+}
+
+task release {
+    description = 'Builds, tests and uploads the release artifacts'
+    group = 'release'
+//    dependsOn readyToRelease, releaseVersion, testedTag, releaseArtifacts, testedDists
+    dependsOn readyToRelease, releaseVersion, buildAndTestProject, tagRelease, distributeRelease
+    doLast {
+        releases.incrementNextVersion()
+        new Svn(project).commitReleases("$version")
+    }
+}
+
+
